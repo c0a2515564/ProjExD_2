@@ -7,8 +7,13 @@ WIDTH, HEIGHT = 1100, 650
 DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, 5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (5, 0)}
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
 def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
-    """Surfaceが画面外にデていないかを判定する関数"""
+    """
+    引数：こうかとんRect or 爆弾Rect
+    戻り値：タプル（横方向判定結果, 縦方向判定結果）
+    画面内ならTrue, 画面外ならFalse
+    """
     horizon, vertical = True, True
     if rct.left < 0 or rct.right > WIDTH:
         horizon = False
@@ -38,6 +43,11 @@ def main():
                 return
         screen.blit(bg_img, [0, 0])
         bb_rct.move_ip(vx, vy)
+        horizon, vertical = check_bound(bb_rct)
+        if not horizon:  # 横方向にはみ出たら反転
+            vx *= -1
+        if not vertical:  # 縦方向にはみ出たら反転
+            vy *= -1
         screen.blit(bb_img, bb_rct)
 
         key_lst = pg.key.get_pressed()
@@ -47,6 +57,8 @@ def main():
                 sum_mv[0] += v[0]
                 sum_mv[1] += v[1]
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):  # 画面外なら更新前の位置に戻す
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
         pg.display.update()
         tmr += 1
