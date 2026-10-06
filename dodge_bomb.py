@@ -1,6 +1,8 @@
 import os
-import sys
 import random
+import sys
+import time
+
 import pygame as pg
 
 WIDTH, HEIGHT = 1100, 650
@@ -20,6 +22,26 @@ def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
     if rct.top < 0 or rct.bottom > HEIGHT:
         vertical = False
     return (horizon, vertical)
+
+
+def gameover(screen: pg.Surface) -> None:
+    """
+    ゲームオーバー画面を5秒間表示する
+    引数：画面Surface
+    """
+    black_img = pg.Surface((WIDTH, HEIGHT))
+    pg.draw.rect(black_img, (0, 0, 0), (0, 0, WIDTH, HEIGHT))
+    black_img.set_alpha(200)  # 半透明にして背景を少し見せる
+    fonto = pg.font.Font(None, 80)
+    txt = fonto.render("Game Over", True, (255, 255, 255))
+    txt_rct = txt.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    black_img.blit(txt, txt_rct)
+    cry_img = pg.image.load("fig/8.png")
+    for x in (txt_rct.left - 50, txt_rct.right + 50):  # 文字列の左右に泣きこうかとん
+        black_img.blit(cry_img, cry_img.get_rect(center=(x, HEIGHT // 2)))
+    screen.blit(black_img, [0, 0])
+    pg.display.update()
+    time.sleep(5)
 
 
 def main():
@@ -42,6 +64,7 @@ def main():
             if event.type == pg.QUIT:
                 return
         screen.blit(bg_img, [0, 0])
+
         bb_rct.move_ip(vx, vy)
         horizon, vertical = check_bound(bb_rct)
         if not horizon:  # 横方向にはみ出たら反転
@@ -60,7 +83,9 @@ def main():
         if check_bound(kk_rct) != (True, True):  # 画面外なら更新前の位置に戻す
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
+
         if kk_rct.colliderect(bb_rct):  # こうかとんと爆弾が衝突したら終了
+            gameover(screen)
             return
         pg.display.update()
         tmr += 1
