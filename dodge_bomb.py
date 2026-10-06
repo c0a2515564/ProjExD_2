@@ -60,6 +60,8 @@ def main():
         if check_bound(kk_rct) != (True, True):  # 画面外なら更新前の位置に戻す
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
         screen.blit(kk_img, kk_rct)
+        if kk_rct.colliderect(bb_rct):  # こうかとんと爆弾が衝突したら終了
+            return
         pg.display.update()
         tmr += 1
         clock.tick(50)
