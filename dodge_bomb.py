@@ -1,3 +1,4 @@
+import math
 import os
 import random
 import sys
@@ -80,6 +81,22 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     return kk_dict
 
 
+def calc_orientation(org: pg.Rect, dst: pg.Rect,
+        current_xy: tuple[float, float]) -> tuple[float, float]:
+    """
+    orgから見てdstがある方向の速度ベクトルを求める
+    引数1 org：爆弾Rect
+    引数2 dst：こうかとんRect
+    引数3 current_xy：計算前の速度ベクトル
+    戻り値：ノルムが√50の速度ベクトル（距離が300未満なら計算前の速度ベクトル）
+    """
+    diff_x, diff_y = dst.centerx - org.centerx, dst.centery - org.centery
+    norm = math.hypot(diff_x, diff_y)
+    if norm < 300:  # 近すぎるときは慣性で進ませる
+        return current_xy
+    return diff_x / norm * math.sqrt(50), diff_y / norm * math.sqrt(50)
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -104,6 +121,7 @@ def main():
         stage = min(tmr // 500, 9)  # 10秒ごとに1段階ずつ拡大・加速
         bb_img = bb_imgs[stage]
         bb_rct = bb_img.get_rect(center=bb_rct.center)
+        vx, vy = calc_orientation(bb_rct, kk_rct, (vx, vy))
         avx, avy = vx * bb_accs[stage], vy * bb_accs[stage]
         bb_rct.move_ip(avx, avy)
         horizon, vertical = check_bound(bb_rct)
