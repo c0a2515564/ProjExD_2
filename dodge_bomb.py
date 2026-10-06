@@ -44,6 +44,21 @@ def gameover(screen: pg.Surface) -> None:
     time.sleep(5)
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """
+    時間とともに拡大・加速する爆弾の準備をする
+    戻り値：タプル（10段階の大きさの爆弾Surfaceのリスト, 加速度のリスト）
+    """
+    bb_imgs = []
+    for r in range(1, 11):
+        bb_img = pg.Surface((20 * r, 20 * r))
+        pg.draw.circle(bb_img, (255, 0, 0), (10 * r, 10 * r), 10 * r)
+        bb_img.set_colorkey((0, 0, 0))
+        bb_imgs.append(bb_img)
+    bb_accs = [a for a in range(1, 11)]
+    return bb_imgs, bb_accs
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -51,9 +66,8 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-    bb_img = pg.Surface((20, 20))
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)
-    bb_img.set_colorkey((0, 0, 0))
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
     bb_rct.center = random.randint(10, WIDTH - 10), random.randint(10, HEIGHT - 10)
     vx, vy = 5, 5
@@ -65,7 +79,11 @@ def main():
                 return
         screen.blit(bg_img, [0, 0])
 
-        bb_rct.move_ip(vx, vy)
+        stage = min(tmr // 500, 9)  # 10秒ごとに1段階ずつ拡大・加速
+        bb_img = bb_imgs[stage]
+        bb_rct = bb_img.get_rect(center=bb_rct.center)
+        avx, avy = vx * bb_accs[stage], vy * bb_accs[stage]
+        bb_rct.move_ip(avx, avy)
         horizon, vertical = check_bound(bb_rct)
         if not horizon:  # 横方向にはみ出たら反転
             vx *= -1
