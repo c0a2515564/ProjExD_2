@@ -7,6 +7,15 @@ WIDTH, HEIGHT = 1100, 650
 DELTA = {pg.K_UP: (0, -5), pg.K_DOWN: (0, 5), pg.K_LEFT: (-5, 0), pg.K_RIGHT: (5, 0)}
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
+    """Surfaceが画面外にデていないかを判定する関数"""
+    horizon, vertical = True, True
+    if rct.left < 0 or rct.right > WIDTH:
+        horizon = False
+    if rct.top < 0 or rct.bottom > HEIGHT:
+        vertical = False
+    return (horizon, vertical)
+
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
